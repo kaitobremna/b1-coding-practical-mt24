@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import control
 from .terrain import generate_reference_and_limits
 
 class Submarine:
@@ -109,7 +110,14 @@ class ClosedLoop:
         for t in range(T):
             positions[t] = self.plant.get_position()
             observation_t = self.plant.get_depth()
-            # Call your controller here
+            
+            # Calculate the error for the current time step
+            error_t = mission.reference[t] - observation_t
+            
+            # Get the control action from the controller using the error
+            actions[t] = self.controller.calculate_control_action(error_t)
+
+            # Apply the calculated action (not a default zero) to the submarine
             self.plant.transition(actions[t], disturbances[t])
 
         return Trajectory(positions)
